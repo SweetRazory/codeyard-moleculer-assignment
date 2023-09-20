@@ -102,9 +102,9 @@ Az alábbiakban megtalálod az elérhető API végpontokat és a hozzájuk szük
 - **Végpont:** `GET /api/users`
 - **Leírás:** Lekéri az összes felhasználót a megadott paraméterek alapján.
 - **Opcionális paraméterek:**
-  - `showIds` : Booleantípus, felhasználók azonosítóinak megjelenítése.
-  - `showPasswords` : Booleantípus, felhasználói jelszavak megjelenítése.
-  - `showRawData` : Booleantípus, felhasználói adatok nyers formájának megjelenítése.
+  - `showIds` : Boolean típus, felhasználók azonosítóinak megjelenítése.
+  - `showPasswords` : Boolean típus, felhasználói jelszavak megjelenítése.
+  - `showRawData` : Boolean típus, felhasználói adatok nyers formájának megjelenítése.
 
 #### Paraméterek
 
