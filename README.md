@@ -44,7 +44,7 @@ Az alábbiakban megtalálod az elérhető API végpontokat és a hozzájuk szük
 
 ### Felhasználó bejelentkezése
 
-- **Végpont:** `POST /login`
+- **Végpont:** `POST /auth/login`
 - **Leírás:** Bejelentkezteti a felhasználót az adott e-mail cím és jelszó alapján.
 
 #### Paraméterek
@@ -71,7 +71,7 @@ Az alábbiakban megtalálod az elérhető API végpontokat és a hozzájuk szük
 
 ### Felhasználó regisztrációja
 
-- **Végpont:** `POST /register`
+- **Végpont:** `POST /auth/register`
 - **Leírás:** Regisztrálja az új felhasználót a megadott paraméterek alapján.
 
 #### Paraméterek
