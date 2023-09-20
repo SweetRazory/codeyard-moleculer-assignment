@@ -408,4 +408,6 @@ A projekt mellé mellékelem a Postmanbe importálható gyűjteményt is, amely 
 
 ## Moleculerrel való tapasztalat/fogékonyság
 
-Az elmúlt időszakban az AWS Lambda funkcionalitásokkal foglalkoztam Node.js és TypeScript környezetben. Emellett dolgoztam GitHub Actions és Terraform alkalmazásokkal is. Bár a MoleculerJS-hez való hozzászokás időbe telt, remélem, hogy a projekt során minőségi kódot tudtam szállítani.
+Az elmúlt időszakban főként AWS Lambda funkcionalitásokkal foglalkoztam Node.js és TypeScript környezetben, emellett GitHub Actions és Terraformmal is. Éppen ezért a MoleculerJS-el kellett egy pár napot játszanom, mielőtt ténylegesen belekezdtem a projectbe, próbáltam minél többet megérteni belőle, remélem a kódom reprezentálja nem csak a Moleculerben szerzett hirtelen tapasztalatomat, de általánosságban a fejlesztői képességeimet is.
+
+Köszönöm szépen hogy megtiszteltél és időt áldoztál arra hogy elolvasd ezt a kis readme-t, legyen szép napod :)
