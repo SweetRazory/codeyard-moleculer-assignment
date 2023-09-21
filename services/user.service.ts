@@ -5,8 +5,6 @@ import User from "../model/user"
 import checkPassword from "../utils/checkPassword"
 import hashPassword from '../utils/hashPassword'
 
-type StandardResponse = string | object | null
-
 const UsersService: ServiceSchema = {
 	name: "user",
 	mixins: [dbMixin("user")],
@@ -18,33 +16,27 @@ const UsersService: ServiceSchema = {
 				email: "string",
 				password: "string",
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					const user = await User.findOne({ email: ctx.params.email })
 
 					if (!user) {
-						ctx.meta.$statusCode = 401
-						return {
-							result: {
-								/**
-								 ** NOTE: Rendes szovegek helyett akar egy i18n kodot is lehetne hagyni,
-								 ** amit a frontend elintez maganak, hogy melyik nyelven,
-								 ** hogyan keruljon oda az adott uzenet, pl error.user.notfound
-								 * */
-								error: "User not found"
-							}
-						}
+						/**
+						 ** NOTE: Rendes szovegek helyett akar egy i18n kodot is lehetne hagyni,
+						 ** amit a frontend elintez maganak, hogy melyik nyelven,
+						 ** hogyan keruljon oda az adott uzenet, pl error.user.notfound
+						 * */
+						return this.response(400, {
+							error: "User not found"
+						}, null, ctx)
 					}
 
 					const isPassValid = await checkPassword(ctx.params.password, user.password)
 
 					if (!isPassValid) {
-						ctx.meta.$statusCode = 401
-						return {
-							result: {
-								error: "Incorrect password"
-							}
-						}
+						return this.response(401, {
+							error: "Incorrect password"
+						}, null, ctx)
 					}
 
 					const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET_KEY as string)
@@ -53,20 +45,13 @@ const UsersService: ServiceSchema = {
 
 					await user.save()
 
-					return {
-						result: {
-							token
-						}
-					}
+					return this.response(200, { token }, null, ctx)
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},
@@ -76,18 +61,15 @@ const UsersService: ServiceSchema = {
 				password: "string",
 				name: "string|optional"
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					const { email, password, name } = ctx.params
 
 					const existingUser = await User.findOne({ email })
 					if (existingUser) {
-						ctx.meta.$statusCode = 401
-						return {
-							result: {
-								error: "User with this email already exists"
-							}
-						}
+						return this.response(401, {
+							error: "User with this email already exists"
+						}, null, ctx)
 					}
 
 					const hashedPass = await hashPassword(password)
@@ -104,20 +86,13 @@ const UsersService: ServiceSchema = {
 
 					await user.save()
 
-					return {
-						result: {
-							token
-						}
-					}
+					return this.response(200, { token }, null, ctx)
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},
@@ -125,7 +100,7 @@ const UsersService: ServiceSchema = {
 			params: {
 				token: "string"
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<Optional<object>> {
 				try {
 					const user = await User.findOne({ "tokens.token": ctx.params.token })
 					if (!user) return null
@@ -161,7 +136,7 @@ const UsersService: ServiceSchema = {
 					default: false
 				},
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					const { showIds, showPasswords, showRawData } = ctx.params
 					//	Ezeket a selecteket kb mindenhova odaraknam, ahol directbe kuldom vissza a user objectet
@@ -172,20 +147,13 @@ const UsersService: ServiceSchema = {
 						.lean()
 						.exec()
 
-					return {
-						result: {
-							users
-						}
-					}
+					return this.response(200, { users }, null, ctx)
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},
@@ -193,33 +161,23 @@ const UsersService: ServiceSchema = {
 			params: {
 				userId: { type: "string", optional: false }
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					const user = await User.findById(ctx.params.userId)
 
 					if (!user) {
-						ctx.meta.$statusCode = 400
-						return {
-							result: {
-								error: "User not found"
-							}
-						}
+						return this.response(400, {
+							error: "User not found"
+						}, null, ctx)
 					}
 
-					return {
-						result: {
-							user
-						}
-					}
+					return this.response(200, { user }, null, ctx)
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},
@@ -231,18 +189,15 @@ const UsersService: ServiceSchema = {
 				name: "string|optional",
 				address: "array|optional"
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					const { email, password, name, address } = ctx.params
 
 					const existingUser = await User.findOne({ email })
 					if (existingUser) {
-						ctx.meta.$statusCode = 401
-						return {
-							result: {
-								error: "User with this email already exists"
-							}
-						}
+						return this.response(400, {
+							error: "User not found"
+						}, null, ctx)
 					}
 
 					const hashedPass = await hashPassword(password)
@@ -254,20 +209,15 @@ const UsersService: ServiceSchema = {
 						address
 					})
 
-					return {
-						result: {
-							message: "Successfully created user"
-						}
-					}
+					return this.response(401, {
+						message: "Successfully created user"
+					}, null, ctx)
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},
@@ -276,38 +226,30 @@ const UsersService: ServiceSchema = {
 				data: "object",
 				userId: "string"
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					const { data, userId } = ctx.params
 
 					const user = await User.findById(userId)
 					if (!user) {
-						ctx.meta.$statusCode = 400
-						return {
-							result: {
-								error: "User not found"
-							}
-						}
+						return this.response(400, {
+							error: "User not found"
+						}, null, ctx)
 					}
 
 					Object.assign(user, data)
 
 					await user.save()
 
-					return {
-						result: {
-							message: "Successfully updated user"
-						}
-					}
+					return this.response(200, {
+						message: "Successfully updated user"
+					}, null, ctx)
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},
@@ -315,24 +257,19 @@ const UsersService: ServiceSchema = {
 			params: {
 				userId: "string"
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					await User.findOneAndDelete({ _id: ctx.params.userId })
 
-					return {
-						result: {
-							message: "Successfully deleted user"
-						}
-					}
+					return this.response(200, {
+						message: "Successfully deleted user"
+					}, null, ctx)
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},
@@ -340,34 +277,26 @@ const UsersService: ServiceSchema = {
 			params: {
 				userId: "string"
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					const { userId } = ctx.params
 
 					const user = await User.findById(userId)
 					if (!user) {
-						ctx.meta.$statusCode = 400
-						return {
-							result: {
-								error: "User not found"
-							}
-						}
+						return this.response(400, {
+							error: "User not found"
+						}, null, ctx)
 					}
 
-					return {
-						result: {
-							addresses: user.addresses
-						}
-					}
+					return this.response(200, {
+						addresses: user.addresses
+					}, null, ctx)
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},
@@ -376,37 +305,30 @@ const UsersService: ServiceSchema = {
 				data: "object",
 				userId: "string"
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					const { userId, data } = ctx.params
 					const user = await User.findById(userId)
 
 					if (!user) {
-						ctx.meta.$statusCode = 400
-						return {
-							result: {
-								error: "User not found"
-							}
-						}
+						return this.response(400, {
+							error: "User not found"
+						}, null, ctx)
 					}
 					user.addresses.push(data)
 
 					await user.save()
 
-					return {
-						result: {
-							message: "Successfully created address"
-						}
-					}
+					return this.response(200, {
+						message: "Successfully created address"
+					}, null, ctx)
+
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},
@@ -416,47 +338,36 @@ const UsersService: ServiceSchema = {
 				addressId: "string",
 				userId: "string"
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					const { userId, data, addressId } = ctx.params
 					const user = await User.findById(userId)
 					if (!user) {
-						ctx.meta.$statusCode = 400
-						return {
-							result: {
-								error: "User not found"
-							}
-						}
+						return this.response(400, {
+							error: "User not found"
+						}, null, ctx)
 					}
 
 					const addressIndex = user?.addresses.findIndex(({ _id }) => _id.toString() === addressId)
 					if (addressIndex === -1) {
-						ctx.meta.$statusCode = 400
-						return {
-							result: {
-								error: "Address not found"
-							}
-						}
+						return this.response(400, {
+							error: "Address not found"
+						}, null, ctx)
 					}
 
 					user.addresses[addressIndex] = data
 
 					await user.save()
 
-					return {
-						result: {
-							message: "Successfully updated address"
-						}
-					}
+					return this.response(200, {
+						message: "Successfully updated address"
+					}, null, ctx)
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},
@@ -465,47 +376,36 @@ const UsersService: ServiceSchema = {
 				addressId: "string",
 				userId: "string"
 			},
-			async handler(this, ctx): Promise<StandardResponse> {
+			async handler(this, ctx): Promise<object> {
 				try {
 					const { userId, addressId } = ctx.params
 					const user = await User.findById(userId)
 					if (!user) {
-						ctx.meta.$statusCode = 400
-						return {
-							result: {
-								error: "User not found"
-							}
-						}
+						return this.response(400, {
+							error: "User not found"
+						}, null, ctx)
 					}
 
 					const addressIndex = user?.addresses.findIndex(({ _id }) => _id.toString() === addressId)
 					if (addressIndex === -1) {
-						ctx.meta.$statusCode = 400
-						return {
-							result: {
-								error: "Address not found"
-							}
-						}
+						return this.response(400, {
+							error: "Address not found"
+						}, null, ctx)
 					}
 
 					user.addresses.splice(addressIndex, 1)
 
 					await user.save()
 
-					return {
-						result: {
-							message: `Successfully deleted address`
-						}
-					}
+					return this.response(200, {
+						error: "Successfully deleted address"
+					}, null, ctx)
 				} catch (error) {
 					this.logger.error(error)
 
-					ctx.meta.$statusCode = 500
-					return {
-						result: {
-							error: "Internal server error"
-						}
-					}
+					return this.response(500, {
+						error: "Internal server error"
+					}, null, ctx)
 				}
 			},
 		},

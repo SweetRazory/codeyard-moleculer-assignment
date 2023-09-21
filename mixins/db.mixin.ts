@@ -1,4 +1,5 @@
 import fs from "fs"
+import type { OutgoingHttpHeaders } from "http"
 import type { Context, ServiceSchema } from "moleculer"
 import DbService from "moleculer-db"
 import MongooseDbAdapter from "moleculer-db-adapter-mongoose"
@@ -34,6 +35,18 @@ export default function dbMixin(collection: string): Partial<ServiceSchema> {
 		},
 
 		methods: {
+			response(code: StatusCode, body: Optional<string | object>, headers: Optional<OutgoingHttpHeaders>, ctx) {
+				ctx.meta.$statusCode = code
+				ctx.meta.$responseHeaders = {
+					...ctx.meta.$responseHeaders,
+					headers
+				}
+
+				return {
+					result: body
+				}
+			},
+
 			async entityChanged(type: string, json: unknown, ctx: Context): Promise<void> {
 				await ctx.broadcast(cacheCleanEventName)
 			},
