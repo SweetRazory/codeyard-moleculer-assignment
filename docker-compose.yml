@@ -25,17 +25,6 @@ services:
       - redis
       - mongo
 
-  token:
-    build:
-      context: .
-    image: backend
-    env_file: docker-compose.env
-    environment:
-      SERVICES: token
-    depends_on:
-      - redis
-      - mongo
-
   mongo:
     image: mongo:4
     ports:
